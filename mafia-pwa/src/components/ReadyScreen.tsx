@@ -21,8 +21,8 @@ export default function ReadyScreen({ onStart }: ReadyScreenProps) {
       <p className="max-w-sm text-sm text-foreground/70">
         Дальше телефон не передаётся по кругу. Игра идёт в руках ведущего.
       </p>
-      <Button type="button" onClick={onStart} className="w-full max-w-sm">
-        Ведущий готов, город засыпает
+      <Button type="button" onClick={onStart} className="min-h-11 w-full max-w-sm">
+        Начинаем! Город засыпает...
       </Button>
     </div>
   );

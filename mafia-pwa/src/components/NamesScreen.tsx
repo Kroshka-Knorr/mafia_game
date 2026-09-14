@@ -38,6 +38,7 @@ export default function NamesScreen({ playerCount, onConfirm }: NamesScreenProps
             value={name}
             placeholder={`Игрок ${index + 1}`}
             onChange={(e) => handleChange(index, e.target.value)}
+            className="min-h-11 text-base"
           />
         ))}
       </div>
@@ -46,7 +47,7 @@ export default function NamesScreen({ playerCount, onConfirm }: NamesScreenProps
         type="button"
         onClick={handleConfirm}
         disabled={!allFilled}
-        className="w-full max-w-sm"
+        className="min-h-11 w-full max-w-sm"
       >
         Дальше
       </Button>

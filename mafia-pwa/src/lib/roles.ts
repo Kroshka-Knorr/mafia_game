@@ -33,6 +33,10 @@ export function validateRoleCounts(
     return { valid: false, error: "Должен быть хотя бы один мафиози" };
   }
 
+  if (mafia + sheriff + doctor > players - 1) {
+    return { valid: false, error: "Нужен хотя бы один мирный житель" };
+  }
+
   const total = mafia + sheriff + doctor + civilian;
   if (total !== players) {
     return {

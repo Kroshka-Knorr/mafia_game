@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import ResultIllustration from "@/components/icons/ResultIllustration";
 import { phrases } from "@/lib/phrases";
 import { releaseWakeLock } from "@/lib/wakeLock";
 import type { PlayerState } from "@/lib/gameState";
@@ -29,6 +30,11 @@ export default function ResultsScreen({ winner, players, onRestart }: ResultsScr
 
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-6 bg-background px-6 py-10 text-center text-foreground">
+      <ResultIllustration
+        winner={winner}
+        className="w-full max-w-sm overflow-hidden rounded-xl border border-border"
+      />
+
       <h1 className="max-w-sm font-serif text-3xl">{winnerText}</h1>
 
       <ul className="flex w-full max-w-sm flex-col gap-2 text-left">
@@ -43,7 +49,7 @@ export default function ResultsScreen({ winner, players, onRestart }: ResultsScr
         ))}
       </ul>
 
-      <Button type="button" onClick={onRestart} className="w-full max-w-sm">
+      <Button type="button" onClick={onRestart} className="min-h-11 w-full max-w-sm">
         Начать новую игру
       </Button>
     </div>

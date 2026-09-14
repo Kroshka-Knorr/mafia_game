@@ -134,3 +134,23 @@
     @apply font-sans;
   }
 }
+
+@keyframes bg-pattern-drift {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(14px, -10px);
+  }
+}
+
+.bg-pattern-drift {
+  animation: bg-pattern-drift 48s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bg-pattern-drift {
+    animation: none;
+  }
+}

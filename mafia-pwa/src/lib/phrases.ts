@@ -66,9 +66,9 @@ export const phrases = {
     sheriffResult: (name: string, isMafia: boolean) =>
       `${name} — ${isMafia ? "мафия" : "не мафия"}.`,
     status: {
-      killed: "Убит ночью",
+      killed: "Убит",
       eliminated: "Изгнан",
-      saved: "Спасён этой ночью",
+      saved: "Спасён",
     },
   },
 } as const;

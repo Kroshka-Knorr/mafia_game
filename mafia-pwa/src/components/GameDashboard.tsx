@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import RoleIcon from "@/components/icons/RoleIcon";
 import { phrases } from "@/lib/phrases";
 import {
   checkWinCondition,
@@ -27,10 +28,28 @@ const ROLE_GROUP_LABELS: Record<Role, string> = {
   civilian: "Мирные",
 };
 
-function statusBadge(player: PlayerState): string | null {
-  if (player.status === "killed") return phrases.dashboard.status.killed;
-  if (player.status === "eliminated") return phrases.dashboard.status.eliminated;
-  if (player.status === "alive" && player.savedThisRound) return phrases.dashboard.status.saved;
+const ROLE_ACCENT: Record<Role, string> = {
+  mafia: "var(--primary)",
+  sheriff: "var(--gold)",
+  doctor: "#4A7A9D",
+  civilian: "var(--muted-foreground)",
+};
+
+interface StatusBadge {
+  label: string;
+  color: string;
+}
+
+function statusBadge(player: PlayerState): StatusBadge | null {
+  if (player.status === "killed") {
+    return { label: phrases.dashboard.status.killed, color: "var(--primary)" };
+  }
+  if (player.status === "eliminated") {
+    return { label: phrases.dashboard.status.eliminated, color: "var(--primary)" };
+  }
+  if (player.status === "alive" && player.savedThisRound) {
+    return { label: phrases.dashboard.status.saved, color: ROLE_ACCENT.doctor };
+  }
   return null;
 }
 
@@ -176,7 +195,7 @@ export default function GameDashboard({ state, onStateChange }: GameDashboardPro
         )}
 
         {step === "night-transition" && (
-          <Button type="button" onClick={handleAdvance} className="w-full max-w-sm">
+          <Button type="button" onClick={handleAdvance} className="min-h-11 w-full max-w-sm">
             {phrases.dashboard.actions.continue}
           </Button>
         )}
@@ -186,26 +205,26 @@ export default function GameDashboard({ state, onStateChange }: GameDashboardPro
             type="button"
             onClick={handleAdvance}
             disabled={nightSelections.mafiaTarget === null}
-            className="w-full max-w-sm"
+            className="min-h-11 w-full max-w-sm"
           >
             {phrases.dashboard.actions.mafiaSleep}
           </Button>
         )}
 
         {step === "doctor-select" && (
-          <Button type="button" onClick={handleAdvance} className="w-full max-w-sm">
+          <Button type="button" onClick={handleAdvance} className="min-h-11 w-full max-w-sm">
             {phrases.dashboard.actions.doctorSleep}
           </Button>
         )}
 
         {step === "sheriff-select" && (
-          <Button type="button" onClick={handleAdvance} className="w-full max-w-sm">
+          <Button type="button" onClick={handleAdvance} className="min-h-11 w-full max-w-sm">
             {phrases.dashboard.actions.sheriffSleep}
           </Button>
         )}
 
         {step === "day-announce" && (
-          <Button type="button" onClick={handleAdvance} className="w-full max-w-sm">
+          <Button type="button" onClick={handleAdvance} className="min-h-11 w-full max-w-sm">
             {phrases.dashboard.actions.startDiscussion}
           </Button>
         )}
@@ -216,7 +235,7 @@ export default function GameDashboard({ state, onStateChange }: GameDashboardPro
               type="button"
               onClick={() => handleEliminate(votingSelection)}
               disabled={votingSelection === null}
-              className="w-full max-w-sm"
+              className="min-h-11 w-full max-w-sm"
             >
               {phrases.dashboard.eliminate(
                 votingSelection !== null ? players[votingSelection].name : null
@@ -226,7 +245,7 @@ export default function GameDashboard({ state, onStateChange }: GameDashboardPro
               type="button"
               variant="outline"
               onClick={() => handleEliminate(null)}
-              className="w-full max-w-sm"
+              className="min-h-11 w-full max-w-sm"
             >
               {phrases.dashboard.actions.tie}
             </Button>
@@ -244,7 +263,8 @@ export default function GameDashboard({ state, onStateChange }: GameDashboardPro
 
           return (
             <section key={role} className="flex flex-col gap-2">
-              <h2 className="text-sm font-medium text-foreground/60">
+              <h2 className="flex items-center gap-1.5 text-sm font-medium text-foreground/60">
+                <RoleIcon role={role} size={16} style={{ color: ROLE_ACCENT[role] }} />
                 {ROLE_GROUP_LABELS[role]}
               </h2>
 
@@ -260,7 +280,7 @@ export default function GameDashboard({ state, onStateChange }: GameDashboardPro
                         type="button"
                         disabled={!clickable}
                         onClick={() => handleRowClick(index)}
-                        className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left transition-colors ${
+                        className={`flex min-h-11 w-full items-center justify-between rounded-lg border px-3 py-2 text-left transition-colors ${
                           selected
                             ? "border-gold bg-gold/10"
                             : "border-border bg-card"
@@ -272,7 +292,9 @@ export default function GameDashboard({ state, onStateChange }: GameDashboardPro
                       >
                         <span>{player.name}</span>
                         {badge && (
-                          <span className="text-xs text-foreground/60">{badge}</span>
+                          <span className="text-xs font-medium" style={{ color: badge.color }}>
+                            {badge.label}
+                          </span>
                         )}
                       </button>
                     </li>
