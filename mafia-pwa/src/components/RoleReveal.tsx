@@ -11,6 +11,9 @@ interface RoleRevealProps {
   roles: Role[];
   names: string[];
   onComplete: () => void;
+  initialIndex?: number;
+  initialRevealed?: boolean;
+  onProgress?: (index: number, hasRevealed: boolean) => void;
 }
 
 type Phase = "handoff" | "reveal";
@@ -22,11 +25,18 @@ const ROLE_ACCENT: Record<Role, string> = {
   civilian: "var(--muted-foreground)",
 };
 
-export default function RoleReveal({ roles, names, onComplete }: RoleRevealProps) {
-  const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
-  const [phase, setPhase] = useState<Phase>("handoff");
-  const [hasRevealed, setHasRevealed] = useState(false);
-  const [cardOpen, setCardOpen] = useState(false);
+export default function RoleReveal({
+  roles,
+  names,
+  onComplete,
+  initialIndex = 0,
+  initialRevealed = false,
+  onProgress,
+}: RoleRevealProps) {
+  const [currentPlayerIndex, setCurrentPlayerIndex] = useState(initialIndex);
+  const [phase, setPhase] = useState<Phase>(initialRevealed ? "reveal" : "handoff");
+  const [hasRevealed, setHasRevealed] = useState(initialRevealed);
+  const [cardOpen, setCardOpen] = useState(initialRevealed);
 
   const role = roles[currentPlayerIndex];
   const name = names[currentPlayerIndex];
@@ -41,6 +51,7 @@ export default function RoleReveal({ roles, names, onComplete }: RoleRevealProps
   function handlePress() {
     setCardOpen(true);
     setHasRevealed(true);
+    onProgress?.(currentPlayerIndex, true);
   }
 
   function handleRelease() {
@@ -52,10 +63,12 @@ export default function RoleReveal({ roles, names, onComplete }: RoleRevealProps
       onComplete();
       return;
     }
-    setCurrentPlayerIndex((i) => i + 1);
+    const nextIndex = currentPlayerIndex + 1;
+    setCurrentPlayerIndex(nextIndex);
     setPhase("handoff");
     setHasRevealed(false);
     setCardOpen(false);
+    onProgress?.(nextIndex, false);
   }
 
   const isOpen = phase === "reveal" && cardOpen;

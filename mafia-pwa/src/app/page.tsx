@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import GameDashboard from "@/components/GameDashboard";
 import NamesScreen from "@/components/NamesScreen";
 import ReadyScreen from "@/components/ReadyScreen";
@@ -8,6 +8,12 @@ import ResultsScreen from "@/components/ResultsScreen";
 import RoleReveal from "@/components/RoleReveal";
 import SetupScreen from "@/components/SetupScreen";
 import { createInitialGameState, type GameState } from "@/lib/gameState";
+import {
+  clearPersistedGame,
+  loadPersistedGame,
+  savePersistedGame,
+  type PersistedScreen,
+} from "@/lib/persistence";
 import {
   getDefaultRoleCounts,
   MIN_PLAYERS,
@@ -24,12 +30,38 @@ function initialRoleCounts(): ManualRoleCounts {
 }
 
 export default function Home() {
-  const [phase, setPhase] = useState<Phase>("setup");
-  const [setupPlayers, setSetupPlayers] = useState(MIN_PLAYERS);
-  const [setupRoleCounts, setSetupRoleCounts] = useState<ManualRoleCounts>(initialRoleCounts);
-  const [roles, setRoles] = useState<Role[]>([]);
-  const [names, setNames] = useState<string[]>([]);
-  const [gameState, setGameState] = useState<GameState | null>(null);
+  const [persisted] = useState(() => loadPersistedGame());
+  const restored = persisted && persisted.screen !== "setup" ? persisted : null;
+
+  const [phase, setPhase] = useState<Phase>(
+    restored ? (restored.screen === "results" ? "dashboard" : restored.screen) : "setup"
+  );
+  const [setupPlayers, setSetupPlayers] = useState(restored?.playerCount ?? MIN_PLAYERS);
+  const [setupRoleCounts, setSetupRoleCounts] = useState<ManualRoleCounts>(
+    restored?.roleCounts ?? initialRoleCounts()
+  );
+  const [roles, setRoles] = useState<Role[]>(restored?.roles ?? []);
+  const [names, setNames] = useState<string[]>(restored?.names ?? []);
+  const [gameState, setGameState] = useState<GameState | null>(restored?.gameState ?? null);
+  const [revealIndex, setRevealIndex] = useState(restored?.revealIndex ?? 0);
+  const [hasRevealedCurrent, setHasRevealedCurrent] = useState(
+    restored?.hasRevealedCurrent ?? false
+  );
+
+  useEffect(() => {
+    const screen: PersistedScreen = phase === "dashboard" && gameState?.winner ? "results" : phase;
+    savePersistedGame({
+      version: 1,
+      screen,
+      playerCount: setupPlayers,
+      roleCounts: setupRoleCounts,
+      names,
+      roles,
+      revealIndex,
+      hasRevealedCurrent,
+      gameState: gameState ?? undefined,
+    });
+  }, [phase, setupPlayers, setupRoleCounts, names, roles, gameState, revealIndex, hasRevealedCurrent]);
 
   function handleSetupConfirm(assignedRoles: Role[]) {
     setRoles(assignedRoles);
@@ -38,11 +70,18 @@ export default function Home() {
 
   function handleNamesConfirm(enteredNames: string[]) {
     setNames(enteredNames);
+    setRevealIndex(0);
+    setHasRevealedCurrent(false);
     setPhase("reveal");
   }
 
   function handleNamesBack() {
     setPhase("setup");
+  }
+
+  function handleRevealProgress(index: number, hasRevealed: boolean) {
+    setRevealIndex(index);
+    setHasRevealedCurrent(hasRevealed);
   }
 
   function handleRevealComplete() {
@@ -56,6 +95,7 @@ export default function Home() {
 
   function handleRestart() {
     void releaseWakeLock();
+    clearPersistedGame();
     setRoles([]);
     setNames([]);
     setGameState(null);
@@ -76,7 +116,16 @@ export default function Home() {
   }
 
   if (phase === "reveal") {
-    return <RoleReveal roles={roles} names={names} onComplete={handleRevealComplete} />;
+    return (
+      <RoleReveal
+        roles={roles}
+        names={names}
+        initialIndex={revealIndex}
+        initialRevealed={hasRevealedCurrent}
+        onProgress={handleRevealProgress}
+        onComplete={handleRevealComplete}
+      />
+    );
   }
 
   if (phase === "ready") {
