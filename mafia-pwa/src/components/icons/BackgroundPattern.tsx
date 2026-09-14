@@ -8,15 +8,15 @@ export default function BackgroundPattern() {
         <defs>
           <pattern
             id="setup-bg-diamonds"
-            width="32"
-            height="32"
+            width="40"
+            height="40"
             patternUnits="userSpaceOnUse"
           >
             <path
-              d="M16 4 L28 16 L16 28 L4 16 Z"
+              d="M20 5 L35 20 L20 35 L5 20 Z"
               fill="none"
               stroke="#A8834A"
-              strokeWidth="1"
+              strokeWidth="1.5"
             />
           </pattern>
         </defs>

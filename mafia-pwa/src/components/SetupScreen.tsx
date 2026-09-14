@@ -129,7 +129,7 @@ export default function SetupScreen({ onConfirm }: SetupScreenProps) {
   }
 
   return (
-    <div className="relative flex flex-1 flex-col items-center justify-center gap-6 overflow-hidden bg-background px-6 py-10 text-foreground">
+    <div className="relative isolate flex flex-1 flex-col items-center justify-center gap-6 overflow-hidden bg-background px-6 py-10 text-foreground">
       <BackgroundPattern />
 
       <SetupEmblem className="h-20 w-20" />

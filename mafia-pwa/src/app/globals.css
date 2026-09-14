@@ -141,12 +141,12 @@
     transform: translate(0, 0);
   }
   50% {
-    transform: translate(14px, -10px);
+    transform: translate(40px, -30px);
   }
 }
 
 .bg-pattern-drift {
-  animation: bg-pattern-drift 48s ease-in-out infinite;
+  animation: bg-pattern-drift 28s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
