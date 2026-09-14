@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import ResultIllustration from "@/components/icons/ResultIllustration";
+import SupportLink from "@/components/SupportLink";
 import { phrases } from "@/lib/phrases";
 import { releaseWakeLock } from "@/lib/wakeLock";
 import type { PlayerState } from "@/lib/gameState";
@@ -52,6 +53,8 @@ export default function ResultsScreen({ winner, players, onRestart }: ResultsScr
       <Button type="button" onClick={onRestart} className="min-h-11 w-full max-w-sm">
         Начать новую игру
       </Button>
+
+      <SupportLink />
     </div>
   );
 }

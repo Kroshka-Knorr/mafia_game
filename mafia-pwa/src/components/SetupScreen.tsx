@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import BackgroundPattern from "@/components/icons/BackgroundPattern";
 import SetupEmblem from "@/components/icons/SetupEmblem";
+import SupportLink from "@/components/SupportLink";
 import {
   assignRoles,
   clampRoleCounts,
@@ -184,6 +185,8 @@ export default function SetupScreen({
       >
         Начать игру
       </Button>
+
+      <SupportLink />
     </div>
   );
 }

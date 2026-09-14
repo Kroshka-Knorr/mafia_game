@@ -46,6 +46,10 @@ export const phrases = {
     civiliansWin: "Мафия обнаружена и обезврежена. Город победил.",
   },
 
+  support: {
+    link: "Понравилась игра? Поддержать разработчика",
+  },
+
   dashboard: {
     banners: {
       nightTransition: "Город засыпает.",
