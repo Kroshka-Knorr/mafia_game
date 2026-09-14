@@ -70,5 +70,6 @@ export const phrases = {
       eliminated: "Изгнан",
       saved: "Спасён",
     },
+    checkedLabel: (isMafia: boolean) => (isMafia ? "Мафия" : "Не мафия"),
   },
 } as const;

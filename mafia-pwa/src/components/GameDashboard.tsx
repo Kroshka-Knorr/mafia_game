@@ -53,12 +53,25 @@ function statusBadge(player: PlayerState): StatusBadge | null {
   return null;
 }
 
+function checkedBadge(isMafia: boolean): StatusBadge {
+  return {
+    label: phrases.dashboard.checkedLabel(isMafia),
+    color: isMafia ? ROLE_ACCENT.mafia : "var(--muted-foreground)",
+  };
+}
+
 export default function GameDashboard({ state, onStateChange }: GameDashboardProps) {
   const [votingSelection, setVotingSelection] = useState<number | null>(null);
   const [lastVictimIndex, setLastVictimIndex] = useState<number | null>(null);
 
   const { players, step, nightSelections, sheriffChecks, round } = state;
   const sheriffIndex = players.findIndex((player) => player.role === "sheriff");
+  const checkedIndices = new Set(sheriffChecks.map((check) => check.playerIndex));
+
+  const hasUncheckedTarget = players.some(
+    (player, index) =>
+      player.status === "alive" && index !== sheriffIndex && !checkedIndices.has(index)
+  );
 
   function handleMafiaSelect(index: number) {
     onStateChange({
@@ -138,7 +151,7 @@ export default function GameDashboard({ state, onStateChange }: GameDashboardPro
       case "doctor-select":
         return true;
       case "sheriff-select":
-        return index !== sheriffIndex;
+        return index !== sheriffIndex && !checkedIndices.has(index);
       case "discussion":
         return true;
       default:
@@ -212,13 +225,23 @@ export default function GameDashboard({ state, onStateChange }: GameDashboardPro
         )}
 
         {step === "doctor-select" && (
-          <Button type="button" onClick={handleAdvance} className="min-h-11 w-full max-w-sm">
+          <Button
+            type="button"
+            onClick={handleAdvance}
+            disabled={nightSelections.doctorTarget === null}
+            className="min-h-11 w-full max-w-sm"
+          >
             {phrases.dashboard.actions.doctorSleep}
           </Button>
         )}
 
         {step === "sheriff-select" && (
-          <Button type="button" onClick={handleAdvance} className="min-h-11 w-full max-w-sm">
+          <Button
+            type="button"
+            onClick={handleAdvance}
+            disabled={hasUncheckedTarget && nightSelections.sheriffTarget === null}
+            className="min-h-11 w-full max-w-sm"
+          >
             {phrases.dashboard.actions.sheriffSleep}
           </Button>
         )}
@@ -272,7 +295,11 @@ export default function GameDashboard({ state, onStateChange }: GameDashboardPro
                 {rows.map(({ player, index }) => {
                   const clickable = isRowClickable(index, player);
                   const selected = isRowSelected(index);
-                  const badge = statusBadge(player);
+                  const priorCheck = sheriffChecks.find((check) => check.playerIndex === index);
+                  const badge =
+                    step === "sheriff-select" && priorCheck
+                      ? checkedBadge(priorCheck.isMafia)
+                      : statusBadge(player);
 
                   return (
                     <li key={index}>
