@@ -7,10 +7,13 @@ import BackgroundPattern from "@/components/icons/BackgroundPattern";
 import SetupEmblem from "@/components/icons/SetupEmblem";
 import {
   assignRoles,
+  clampRoleCounts,
   getDefaultRoleCounts,
   MAX_PLAYERS,
   MIN_PLAYERS,
+  ROLE_MIN,
   validateRoleCounts,
+  type ManualRoleCounts,
   type Role,
 } from "@/lib/roles";
 
@@ -22,37 +25,11 @@ const ROLE_LABELS: Record<"mafia" | "sheriff" | "doctor", string> = {
   doctor: "Доктор",
 };
 
-const ROLE_MIN: Record<"mafia" | "sheriff" | "doctor", number> = {
-  mafia: 1,
-  sheriff: 0,
-  doctor: 0,
-};
-
-interface ManualRoleCounts {
-  mafia: number;
-  sheriff: number;
-  doctor: number;
-}
-
-// Подрезает состав до валидного: мафия >= 1, мирных >= 1. Сначала урезаются
-// необязательные роли (доктор, затем шериф), и только потом — мафия.
-function clampRoleCounts(players: number, roles: ManualRoleCounts): ManualRoleCounts {
-  let { mafia, sheriff, doctor } = roles;
-  mafia = Math.max(1, mafia);
-
-  while (mafia + sheriff + doctor > players - 1 && (doctor > 0 || sheriff > 0)) {
-    if (doctor > 0) doctor -= 1;
-    else sheriff -= 1;
-  }
-
-  while (mafia + sheriff + doctor > players - 1 && mafia > 1) {
-    mafia -= 1;
-  }
-
-  return { mafia, sheriff, doctor };
-}
-
 interface SetupScreenProps {
+  players: number;
+  roleCounts: ManualRoleCounts;
+  onPlayersChange: (players: number) => void;
+  onRoleCountsChange: (counts: ManualRoleCounts) => void;
   onConfirm: (roles: Role[]) => void;
 }
 
@@ -67,17 +44,18 @@ function parsePlayers(text: string): number | null {
   return value;
 }
 
-export default function SetupScreen({ onConfirm }: SetupScreenProps) {
-  const [playersInput, setPlayersInput] = useState(String(MIN_PLAYERS));
+export default function SetupScreen({
+  players,
+  roleCounts,
+  onPlayersChange,
+  onRoleCountsChange,
+  onConfirm,
+}: SetupScreenProps) {
+  const [playersInput, setPlayersInput] = useState(() => String(players));
   const [playersError, setPlayersError] = useState(false);
-  const [players, setPlayers] = useState(MIN_PLAYERS);
-  const [manual, setManual] = useState(() => {
-    const defaults = getDefaultRoleCounts(MIN_PLAYERS);
-    return { mafia: defaults.mafia, sheriff: defaults.sheriff, doctor: defaults.doctor };
-  });
 
-  const civilian = players - manual.mafia - manual.sheriff - manual.doctor;
-  const counts = { ...manual, civilian };
+  const civilian = players - roleCounts.mafia - roleCounts.sheriff - roleCounts.doctor;
+  const counts = { ...roleCounts, civilian };
   const validation = validateRoleCounts(players, counts);
   const playersValid = parsePlayers(playersInput) !== null;
 
@@ -88,8 +66,8 @@ export default function SetupScreen({ onConfirm }: SetupScreenProps) {
       sheriff: defaults.sheriff,
       doctor: defaults.doctor,
     });
-    setPlayers(value);
-    setManual(clamped);
+    onPlayersChange(value);
+    onRoleCountsChange(clamped);
   }
 
   function handlePlayersInputChange(text: string) {
@@ -115,12 +93,10 @@ export default function SetupScreen({ onConfirm }: SetupScreenProps) {
   }
 
   function handleStep(role: "mafia" | "sheriff" | "doctor", delta: number) {
-    setManual((prev) => {
-      const next = { ...prev, [role]: Math.max(ROLE_MIN[role], prev[role] + delta) };
-      const sum = next.mafia + next.sheriff + next.doctor;
-      if (sum > players - 1) return prev;
-      return next;
-    });
+    const next = { ...roleCounts, [role]: Math.max(ROLE_MIN[role], roleCounts[role] + delta) };
+    const sum = next.mafia + next.sheriff + next.doctor;
+    if (sum > players - 1) return;
+    onRoleCountsChange(next);
   }
 
   function handleStart() {
@@ -155,7 +131,7 @@ export default function SetupScreen({ onConfirm }: SetupScreenProps) {
 
       <div className="flex w-full max-w-sm flex-col gap-3">
         {(["mafia", "sheriff", "doctor"] as const).map((role) => {
-          const roleSum = manual.mafia + manual.sheriff + manual.doctor;
+          const roleSum = roleCounts.mafia + roleCounts.sheriff + roleCounts.doctor;
           const increaseDisabled = roleSum >= players - 1;
 
           return (
@@ -167,13 +143,13 @@ export default function SetupScreen({ onConfirm }: SetupScreenProps) {
                   variant="outline"
                   size="icon"
                   onClick={() => handleStep(role, -1)}
-                  disabled={manual[role] <= ROLE_MIN[role]}
+                  disabled={roleCounts[role] <= ROLE_MIN[role]}
                   aria-label={`Уменьшить: ${ROLE_LABELS[role]}`}
                   className="min-h-11 min-w-11"
                 >
                   −
                 </Button>
-                <span className="w-6 text-center tabular-nums">{manual[role]}</span>
+                <span className="w-6 text-center tabular-nums">{roleCounts[role]}</span>
                 <Button
                   type="button"
                   variant="outline"

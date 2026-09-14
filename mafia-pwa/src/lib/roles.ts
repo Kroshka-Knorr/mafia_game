@@ -10,6 +10,36 @@ export interface RoleCounts {
 export const MIN_PLAYERS = 4;
 export const MAX_PLAYERS = 12;
 
+export interface ManualRoleCounts {
+  mafia: number;
+  sheriff: number;
+  doctor: number;
+}
+
+export const ROLE_MIN: ManualRoleCounts = {
+  mafia: 1,
+  sheriff: 0,
+  doctor: 0,
+};
+
+// Подрезает состав до валидного: мафия >= 1, мирных >= 1. Сначала урезаются
+// необязательные роли (доктор, затем шериф), и только потом — мафия.
+export function clampRoleCounts(players: number, roles: ManualRoleCounts): ManualRoleCounts {
+  let { mafia, sheriff, doctor } = roles;
+  mafia = Math.max(1, mafia);
+
+  while (mafia + sheriff + doctor > players - 1 && (doctor > 0 || sheriff > 0)) {
+    if (doctor > 0) doctor -= 1;
+    else sheriff -= 1;
+  }
+
+  while (mafia + sheriff + doctor > players - 1 && mafia > 1) {
+    mafia -= 1;
+  }
+
+  return { mafia, sheriff, doctor };
+}
+
 export function getDefaultRoleCounts(players: number): RoleCounts {
   const mafia = Math.max(1, Math.floor(players / 3));
   const sheriff = players >= 5 ? 1 : 0;

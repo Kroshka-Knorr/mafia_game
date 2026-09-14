@@ -8,13 +8,25 @@ import ResultsScreen from "@/components/ResultsScreen";
 import RoleReveal from "@/components/RoleReveal";
 import SetupScreen from "@/components/SetupScreen";
 import { createInitialGameState, type GameState } from "@/lib/gameState";
-import type { Role } from "@/lib/roles";
+import {
+  getDefaultRoleCounts,
+  MIN_PLAYERS,
+  type ManualRoleCounts,
+  type Role,
+} from "@/lib/roles";
 import { releaseWakeLock } from "@/lib/wakeLock";
 
 type Phase = "setup" | "names" | "reveal" | "ready" | "dashboard";
 
+function initialRoleCounts(): ManualRoleCounts {
+  const defaults = getDefaultRoleCounts(MIN_PLAYERS);
+  return { mafia: defaults.mafia, sheriff: defaults.sheriff, doctor: defaults.doctor };
+}
+
 export default function Home() {
   const [phase, setPhase] = useState<Phase>("setup");
+  const [setupPlayers, setSetupPlayers] = useState(MIN_PLAYERS);
+  const [setupRoleCounts, setSetupRoleCounts] = useState<ManualRoleCounts>(initialRoleCounts);
   const [roles, setRoles] = useState<Role[]>([]);
   const [names, setNames] = useState<string[]>([]);
   const [gameState, setGameState] = useState<GameState | null>(null);
@@ -27,6 +39,10 @@ export default function Home() {
   function handleNamesConfirm(enteredNames: string[]) {
     setNames(enteredNames);
     setPhase("reveal");
+  }
+
+  function handleNamesBack() {
+    setPhase("setup");
   }
 
   function handleRevealComplete() {
@@ -43,11 +59,20 @@ export default function Home() {
     setRoles([]);
     setNames([]);
     setGameState(null);
+    setSetupPlayers(MIN_PLAYERS);
+    setSetupRoleCounts(initialRoleCounts());
     setPhase("setup");
   }
 
   if (phase === "names") {
-    return <NamesScreen playerCount={roles.length} onConfirm={handleNamesConfirm} />;
+    return (
+      <NamesScreen
+        playerCount={roles.length}
+        initialNames={names}
+        onConfirm={handleNamesConfirm}
+        onBack={handleNamesBack}
+      />
+    );
   }
 
   if (phase === "reveal") {
@@ -71,5 +96,13 @@ export default function Home() {
     return <GameDashboard state={gameState} onStateChange={setGameState} />;
   }
 
-  return <SetupScreen onConfirm={handleSetupConfirm} />;
+  return (
+    <SetupScreen
+      players={setupPlayers}
+      roleCounts={setupRoleCounts}
+      onPlayersChange={setSetupPlayers}
+      onRoleCountsChange={setSetupRoleCounts}
+      onConfirm={handleSetupConfirm}
+    />
+  );
 }
